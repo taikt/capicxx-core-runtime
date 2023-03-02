@@ -20,6 +20,8 @@
 #include <CommonAPI/Factory.hpp>
 #include <CommonAPI/Types.hpp>
 
+#include "debug.hpp"
+
 namespace CommonAPI {
 
 static const ConnectionId_t DEFAULT_CONNECTION_ID = "";
@@ -113,6 +115,7 @@ public:
                          const std::string &_instance,
                          std::shared_ptr<Stub_> _service,
                          const ConnectionId_t &_connectionId = DEFAULT_CONNECTION_ID) {
+        DEBUG_MSG();
         return registerStub(_domain, Stub_::StubInterface::getInterface(), _instance, _service, _connectionId);
     }
 
@@ -121,6 +124,7 @@ public:
                          const std::string &_instance,
                          std::shared_ptr<Stub_> _service,
                          std::shared_ptr<MainLoopContext> _context) {
+        DEBUG_MSG();
         return registerStub(_domain, Stub_::StubInterface::getInterface(), _instance, _service, _context);
     }
 

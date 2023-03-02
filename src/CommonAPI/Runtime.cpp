@@ -18,6 +18,8 @@
 #include <CommonAPI/IniFileReader.hpp>
 #include <CommonAPI/Logger.hpp>
 #include <CommonAPI/Runtime.hpp>
+#include <iostream>
+#include "debug.hpp"
 
 namespace CommonAPI {
 
@@ -43,6 +45,7 @@ DEINITIALIZER(RuntimeDeinit) {
 
 std::string
 Runtime::getProperty(const std::string &_name) {
+    DEBUG_MSG();
     auto foundProperty = properties__.find(_name);
     if (foundProperty != properties__.end())
         return foundProperty->second;
@@ -51,10 +54,12 @@ Runtime::getProperty(const std::string &_name) {
 
 void
 Runtime::setProperty(const std::string &_name, const std::string &_value) {
+    DEBUG_MSG();
     properties__[_name] = _value;
 }
 
 std::shared_ptr<Runtime> Runtime::get() {
+    DEBUG_MSG();
 #ifndef _WIN32
     std::lock_guard<std::mutex> itsLock(getMutex__);
 #endif
@@ -76,6 +81,7 @@ Runtime::Runtime()
       defaultFolder_(COMMONAPI_DEFAULT_FOLDER),
       isConfigured_(false),
       isInitialized_(false) {
+        DEBUG_MSG();
 }
 
 Runtime::~Runtime() {
@@ -84,6 +90,7 @@ Runtime::~Runtime() {
 
 bool
 Runtime::registerFactory(const std::string &_binding, std::shared_ptr<Factory> _factory) {
+    DEBUG_MSG();
     bool isRegistered(false);
 #ifndef _WIN32
     std::lock_guard<std::mutex> itsLock(factoriesMutex_);
@@ -107,6 +114,7 @@ Runtime::registerFactory(const std::string &_binding, std::shared_ptr<Factory> _
 
 bool
 Runtime::unregisterFactory(const std::string &_binding) {
+    DEBUG_MSG();
 #ifndef _WIN32
     std::lock_guard<std::mutex> itsLock(factoriesMutex_);
 #endif
@@ -122,6 +130,7 @@ Runtime::unregisterFactory(const std::string &_binding) {
  * Private
  */
 void Runtime::init() {
+    DEBUG_MSG();
 #ifndef _WIN32
     std::lock_guard<std::mutex> itsLock(mutex_);
 #endif
@@ -154,6 +163,7 @@ void Runtime::init() {
 
 void
 Runtime::initFactories() {
+    DEBUG_MSG();
     std::lock_guard<std::mutex> itsLock(factoriesMutex_);
     if (!isInitialized_) {
         COMMONAPI_INFO("Loading configuration file \'", usedConfig_, "\'");
@@ -172,6 +182,7 @@ Runtime::initFactories() {
 
 bool
 Runtime::readConfiguration() {
+    DEBUG_MSG();
 #define MAX_PATH_LEN 255
     std::string config;
     bool tryLoadConfig(true);
@@ -256,6 +267,7 @@ std::shared_ptr<Proxy>
 Runtime::createProxy(
         const std::string &_domain, const std::string &_interface, const std::string &_instance,
         const ConnectionId_t &_connectionId) {
+            DEBUG_MSG();
     if (!isInitialized_) {
         initFactories();
     }
@@ -277,7 +289,9 @@ std::shared_ptr<Proxy>
 Runtime::createProxy(
         const std::string &_domain, const std::string &_interface, const std::string &_instance,
         std::shared_ptr<MainLoopContext> _context) {
+            DEBUG_MSG();
     if (!isInitialized_) {
+        
         initFactories();
     }
 
@@ -298,6 +312,7 @@ Runtime::createProxy(
 bool
 Runtime::registerStub(const std::string &_domain, const std::string &_interface, const std::string &_instance,
                         std::shared_ptr<StubBase> _stub, const ConnectionId_t &_connectionId) {
+    DEBUG_MSG();
     if (!_stub) {
         return false;
     }
@@ -320,6 +335,7 @@ Runtime::registerStub(const std::string &_domain, const std::string &_interface,
 bool
 Runtime::registerStub(const std::string &_domain, const std::string &_interface, const std::string &_instance,
                         std::shared_ptr<StubBase> _stub, std::shared_ptr<MainLoopContext> _context) {
+    DEBUG_MSG();                         
     if (!_stub) {
         return false;
     }
@@ -341,6 +357,7 @@ Runtime::registerStub(const std::string &_domain, const std::string &_interface,
 
 bool
 Runtime::unregisterStub(const std::string &_domain, const std::string &_interface, const std::string &_instance) {
+    DEBUG_MSG();
     for (auto factory : factories_) {
         if (factory.second->unregisterStub(_domain, _interface, _instance))
             return true;
@@ -353,6 +370,7 @@ std::string
 Runtime::getLibrary(
     const std::string &_domain, const std::string &_interface, const std::string &_instance,
     bool _isProxy) {
+    DEBUG_MSG();
 
     std::string library;
     std::string address = _domain + ":" + _interface + ":" + _instance;
@@ -388,6 +406,7 @@ Runtime::getLibrary(
 
 bool
 Runtime::loadLibrary(const std::string &_library) {
+    DEBUG_MSG();
     std::string itsLibrary(_library);
 
     // TODO: decide whether this really is a good idea...
@@ -448,6 +467,7 @@ Runtime::loadLibrary(const std::string &_library) {
 std::shared_ptr<Proxy>
 Runtime::createProxyHelper(const std::string &_domain, const std::string &_interface, const std::string &_instance,
                            const std::string &_connectionId, bool _useDefault) {
+    DEBUG_MSG();
     std::lock_guard<std::mutex> itsLock(factoriesMutex_);
     for (auto factory : factories_) {
         std::shared_ptr<Proxy> proxy
@@ -463,6 +483,7 @@ Runtime::createProxyHelper(const std::string &_domain, const std::string &_inter
 std::shared_ptr<Proxy>
 Runtime::createProxyHelper(const std::string &_domain, const std::string &_interface, const std::string &_instance,
                            std::shared_ptr<MainLoopContext> _context, bool _useDefault) {
+    DEBUG_MSG();
     std::lock_guard<std::mutex> itsLock(factoriesMutex_);
     for (auto factory : factories_) {
         std::shared_ptr<Proxy> proxy
@@ -478,6 +499,7 @@ Runtime::createProxyHelper(const std::string &_domain, const std::string &_inter
 bool
 Runtime::registerStubHelper(const std::string &_domain, const std::string &_interface, const std::string &_instance,
                             std::shared_ptr<StubBase> _stub, const std::string &_connectionId, bool _useDefault) {
+    DEBUG_MSG();
     bool isRegistered(false);
     std::lock_guard<std::mutex> itsLock(factoriesMutex_);
     for (auto factory : factories_) {
@@ -493,6 +515,8 @@ Runtime::registerStubHelper(const std::string &_domain, const std::string &_inte
 bool
 Runtime::registerStubHelper(const std::string &_domain, const std::string &_interface, const std::string &_instance,
                             std::shared_ptr<StubBase> _stub, std::shared_ptr<MainLoopContext> _context, bool _useDefault) {
+    DEBUG_MSG();
+    std::cout <<"taikt registerStubHelper\n";
     bool isRegistered(false);
     std::lock_guard<std::mutex> itsLock(factoriesMutex_);
     for (auto factory : factories_) {
